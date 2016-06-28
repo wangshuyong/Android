@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">我的宝贝</string>
+    <string name="title_activity_login">Sign in</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password (optional)</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+
+    <!-- 自定义列表-->
+    <string name="btn_next">下一步</string>
+    <string name="tv_view">这是个测试,二姑和入股和任何个ggregregregrehhrtjyjkttkuyluykuylylu积分可兑换不ID还不我会</string>
+    <string name="btn_sendMessage">发送消息</string>
+    <string name="btn_submit">提交</string>
+</resources>

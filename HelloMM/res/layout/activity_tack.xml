@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent" >
+
+	<TextView
+		android:id="@+id/phoneTag"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/phoneTag" />
+
+	<TextView
+		android:id="@+id/textView_tack"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_toRightOf="@id/phoneTag"
+		android:text="@string/textView_tack"
+		android:layout_alignParentRight="true"/>
+
+</RelativeLayout>
