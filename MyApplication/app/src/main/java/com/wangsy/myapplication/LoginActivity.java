@@ -3,6 +3,7 @@ package com.wangsy.myapplication;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -28,7 +29,12 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +45,7 @@ import static android.Manifest.permission.READ_CONTACTS;
  */
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
+    private static final String PATH = "http://10.130.27.29:8080/CmsAdmin/user/Login_login";
     /**
      * Id to identity READ_CONTACTS permission request.
      */
@@ -86,7 +93,37 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+
+               if(attemptLogin()) {
+                   new Thread(){
+                       @Override
+                       public void run() {
+                           String name = mEmailView.getText().toString();
+                           String pass = mPasswordView.getText().toString();
+                           StringBuilder str = new StringBuilder(PATH);
+                           str.append("?username=").append(name).append("?password=").append(pass);
+                           try {
+                               URL url = new URL(str.toString());
+                               HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                               conn.setReadTimeout(5000);
+                               conn.setConnectTimeout(5000);
+                               conn.setRequestMethod("GET");
+                               if (conn.getResponseCode()!=200) {
+                                   Toast.makeText(LoginActivity.this,"连接服务器失败",Toast.LENGTH_SHORT);
+                               }else {
+                                   Intent intent = new Intent();
+                                   intent.setClass(LoginActivity.this,MainActivity.class);
+                                   startActivity(intent);
+                               }
+                           } catch (MalformedURLException e) {
+                               e.printStackTrace();
+                           } catch (IOException e) {
+                               e.printStackTrace();
+                           }
+                       }
+                   }.start();
+
+               }
             }
         });
 
@@ -143,9 +180,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    private void attemptLogin() {
+    private boolean attemptLogin() {
         if (mAuthTask != null) {
-            return;
+            return false;
         }
 
         // Reset errors.
@@ -171,12 +208,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
-        } else if (!isEmailValid(email)) {
+        }
+        /**
+        else if (!isEmailValid(email)) {
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
         }
-
+**/
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
@@ -188,6 +227,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = new UserLoginTask(email, password);
             mAuthTask.execute((Void) null);
         }
+
+        if(true){
+            return true;
+        } else
+            Toast.makeText(LoginActivity.this,"用户名密码错误，请重新输入！！！",Toast.LENGTH_SHORT);
+        return false;
     }
 
     private boolean isEmailValid(String email) {
