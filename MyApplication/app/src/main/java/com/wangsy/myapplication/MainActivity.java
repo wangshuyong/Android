@@ -3,6 +3,7 @@ package com.wangsy.myapplication;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,12 +27,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     private ImageView image_photo;
     private Button btn_adapter;
     private AlertDialog.Builder builder;
-    private Handler mHandle;
+    private Handler mHandle,workHandler;
     private static final int START=0;
     private static final int FINISH=100;
     private Button btn_download;
     private ProgressBar pb_progress;
     private TextView tv_progress;
+    private Button btn_users;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,11 +44,48 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         btn_download = (Button) findViewById(R.id.btn_donwnload);
         tv_progress = (TextView) findViewById(R.id.tv_progress);
         pb_progress = (ProgressBar) findViewById(R.id.pb_progress);
+        btn_users = (Button) findViewById(R.id.btn_users);
         initHandler();
+        initWorkHandler();
         btn_next.setOnClickListener(this);
         btn_photo.setOnClickListener(this);
         btn_adapter.setOnClickListener(this);
         btn_download.setOnClickListener(this);
+        btn_users.setOnClickListener(this);
+    }
+
+    private void initWorkHandler() {
+
+        new Thread(){
+            @Override
+            public void run() {
+                Looper.prepare();
+                workHandler = new Handler(){
+                    @Override
+                    public void handleMessage(Message msg) {
+                        if(msg.what==START) {
+                            for (int i=1;i<=100;i++){
+                                try {
+                                    sleep(5);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                pb_progress.setProgress(i);
+                                Message msg2 = Message.obtain();
+                                msg2.arg1=i;
+                                msg2.what=START;
+                                mHandle.sendMessage(msg2);
+                            }
+                            Message msg1 =new Message();
+                            msg1.what=FINISH;
+                            mHandle.sendMessage(msg1);
+                        }
+                    }
+                };
+                Looper.loop();
+
+            };
+        }.start();
     }
 
     private void initHandler() {
@@ -93,29 +132,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             intent.setClass(this,MyListView.class);
             startActivity(intent);
         }
+        if(view.getId()==R.id.btn_users) {
+            Intent intent = new Intent();
+            intent.setClass(this,UserListActivity.class);
+            startActivity(intent);
+        }
 
         if (view.getId()==R.id.btn_donwnload) {
+            workHandler.sendEmptyMessage(START);
 
-            new Thread(){
-                @Override
-                public void run() {
-                    for (int i=1;i<=100;i++){
-                        try {
-                            sleep(5);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        pb_progress.setProgress(i);
-                        Message msg = Message.obtain();
-                        msg.arg1=i;
-                        msg.what=START;
-                        mHandle.sendMessage(msg);
-                    }
-                    Message msg =new Message();
-                    msg.what=FINISH;
-                    mHandle.sendMessage(msg);
-                }
-            }.start();
         }
     }
     private void showDialog(String str) {

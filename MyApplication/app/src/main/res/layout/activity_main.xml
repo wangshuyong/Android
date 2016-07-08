@@ -59,9 +59,10 @@
         android:layout_height="wrap_content"
         android:textSize="20sp"
         android:text="0%"/>
-    <ListView
-        android:id="@+id/lv_address"
-        android:layout_width="fill_parent"
+
+    <Button
+        android:id="@+id/btn_users"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        />
+        android:text="获取用户列表"/>
 </LinearLayout>
