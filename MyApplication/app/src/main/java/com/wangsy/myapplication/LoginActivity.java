@@ -120,6 +120,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                     }
                 } catch (MalformedURLException e) {
+                    Toast.makeText(LoginActivity.this, "连接服务器失败", Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
