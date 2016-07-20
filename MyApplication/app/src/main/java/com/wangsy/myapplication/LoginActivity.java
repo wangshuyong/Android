@@ -1,5 +1,6 @@
 package com.wangsy.myapplication;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -7,6 +8,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -18,16 +20,26 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String HOSTPATH = "http://10.130.62.37:8080/CmsAdmin/web/Login_login";
+//    private static final String HOSTPATH = "http://10.130.18.205:8080/CmsAdmin/web/Login_login";
+    private static final String HOSTPATH = "http://10.130.62.51:8080/CmsAdmin/web/Login_login";
+    private final static String TAG = "LoginActivity";
     private AutoCompleteTextView tv_phone;
     private EditText et_password;
     private Button btn_sign_in;
@@ -47,10 +59,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void handleMessage(Message msg) {
                 if(msg.what==1){
-                    Toast.makeText(LoginActivity.this,"连接成功",Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent();
-                    intent.setClass(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
+//                    String result = (String) msg.obj;
+//                    jsonParseStr(result);
+                    try {
+                        JSONObject jsonObject = new JSONObject(msg.obj.toString());
+                        String name = (String) jsonObject.get("message");
+                        FileOutputStream fos =openFileOutput("login.txt", Context.MODE_PRIVATE);
+                        fos.write(name.getBytes());
+                        fos.close();
+                        Toast.makeText(LoginActivity.this,name,Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent();
+                        intent.setClass(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                 }
             }
         };
@@ -71,17 +97,27 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     httpconn.setRequestMethod("GET");
                     httpconn.setConnectTimeout(25000);
                     httpconn.setReadTimeout(13000);
+                    int num = httpconn.getResponseCode();
+                    Log.d("num",num+"");
                     if (httpconn.getResponseCode() != 200) {
                         Toast.makeText(LoginActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                         return;
                     } else {
-                        JSONObject json = new JSONObject();
+                        InputStreamReader isr = new InputStreamReader(httpconn.getInputStream());
+                        BufferedReader br = new BufferedReader(isr);
+                        String result = "";
+                        StringBuilder builder = new StringBuilder();
+                        for (String s = br.readLine(); s != null; s = br.readLine()) {
+                            builder.append(s);
+                    }
+                        isr.close();
+                        httpconn.disconnect();
 
-                        String result = httpconn.getResponseMessage();
                         Message msg = Message.obtain();
                         msg.what=1;
-                        msg.obj=result;
+                        msg.obj=builder.toString();
                         mHandler.sendMessage(msg);
+
                     }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
@@ -117,5 +153,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
+    }
+
+    private void jsonParseStr(String response) {
+        if(response!=null&&response.startsWith("\ufeff")){
+            response = response.substring(1);
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                String name = (String) jsonObject.get("message");
+                Log.i(TAG, "message: " + name);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

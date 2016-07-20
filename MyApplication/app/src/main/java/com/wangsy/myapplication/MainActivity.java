@@ -1,5 +1,6 @@
 package com.wangsy.myapplication;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
@@ -15,6 +16,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -22,18 +25,14 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener{
 
-    private Button btn_next;
-    private Button btn_photo;
     private ImageView image_photo;
-    private Button btn_adapter;
     private AlertDialog.Builder builder;
     private Handler mHandle,workHandler;
     private static final int START=0;
     private static final int FINISH=100;
-    private Button btn_download;
+    private Button btn_download,btn_users,btn_adapter,btn_photo,btn_next;
     private ProgressBar pb_progress;
-    private TextView tv_progress;
-    private Button btn_users;
+    private TextView tv_progress,tv_fromFile;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +44,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         tv_progress = (TextView) findViewById(R.id.tv_progress);
         pb_progress = (ProgressBar) findViewById(R.id.pb_progress);
         btn_users = (Button) findViewById(R.id.btn_users);
+        tv_fromFile = (TextView) findViewById(R.id.tv_Fromfile);
+        try {
+            tv_fromFile.setText(read("login.txt",this));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         initHandler();
         initWorkHandler();
         btn_next.setOnClickListener(this);
@@ -142,6 +147,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             workHandler.sendEmptyMessage(START);
 
         }
+    }
+    public String read(String filename, Context mContext) throws IOException {
+        //打开文件输入流
+        FileInputStream input = mContext.openFileInput(filename);
+        byte[] temp = new byte[1024];
+        StringBuilder sb = new StringBuilder("");
+        int len = 0;
+        //读取文件内容:
+        while ((len = input.read(temp)) > 0) {
+            sb.append(new String(temp, 0, len));
+        }
+        //关闭输入流
+        input.close();
+        return sb.toString();
     }
     private void showDialog(String str) {
         new AlertDialog.Builder(MainActivity.this).setMessage(str).show();
