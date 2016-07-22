@@ -13,6 +13,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -28,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -35,6 +37,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 //    private static final String HOSTPATH = "http://10.130.62.51:8080/CmsAdmin/web/Login_login";
     private final static String TAG = "LoginActivity";
     private AutoCompleteTextView tv_phone;
+    private TextView tv_register;
     private EditText et_password;
     private Button btn_sign_in;
     private Handler mHandler,workHandler;
@@ -54,20 +57,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             et_password.setText(sp.getString("password",""));
             remember.setChecked(true);
         }
-        final String phone = tv_phone.getText().toString();
-        final String pass = et_password.getText().toString();
         mHandler = new Handler(){
-
             @Override
             public void handleMessage(Message msg) {
                 if(msg.what==1){
                     try {
-                        JSONObject jsonObject = new JSONObject(msg.obj.toString());
+                        Bundle data = msg.getData();
+                        JSONObject jsonObject = new JSONObject(data.getString("message"));
                         String message = (String) jsonObject.get("message");
                         String flag = (String) jsonObject.get("flag");
                         if(flag.equals("success")){
                             if(remember.isChecked()){
-                                saveSP(phone,pass,true);
+                                saveSP(data.getString("username"),data.getString("password"),true);
                             }else {
                                 saveSP("","",false);
                             }
@@ -103,6 +104,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         btn_sign_in.setOnClickListener(this);
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         remember = (CheckBox) findViewById(R.id.checkbox_remember);
+        tv_register = (TextView) findViewById(R.id.tv_register);
     }
 
     @Override
@@ -114,9 +116,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 String pass = et_password.getText().toString();
                 StringBuilder str = new StringBuilder(HOSTPATH);
                 str.append("?phone=").append(phone).append("&&password=").append(pass);
-
                 Message msg = Message.obtain();
-                Map<String,String> data = new HashMap<String, String>();
+                Bundle data = new Bundle();
                 if(phone==""||phone==null||pass==""||pass==null) {
                     msg.what=2;
                     mHandler.sendMessage(msg);
@@ -139,8 +140,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             }
                             isr.close();
                             httpconn.disconnect();
+                            data.putString("username",phone);
+                            data.putString("password",pass);
+                            data.putString("message",builder.toString());
                             msg.what=1;
-                            msg.obj=builder.toString();
+                            msg.setData(data);
                             mHandler.sendMessage(msg);
                         }
                     } catch (MalformedURLException e) {
